@@ -46,6 +46,9 @@ protected:
     int m_blockSize;
     float m_minFreq;
     float m_maxFreq;
+    int m_harmonics;
+
+    static double findInterpolatedPeak(const double *in, int peakbin, int bins);
 };
 
 

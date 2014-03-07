@@ -7,7 +7,7 @@ CC	?= gcc
 CFLAGS := $(CFLAGS) 
 CXXFLAGS := -I. $(CXXFLAGS)
 
-PLUGIN := chp(PLUGIN_EXT)
+PLUGIN := chp$(PLUGIN_EXT)
 
 SOURCES := ConstrainedHarmonicPeak.cpp
 
