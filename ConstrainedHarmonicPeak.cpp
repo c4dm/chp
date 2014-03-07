@@ -10,7 +10,7 @@ using std::vector;
 
 ConstrainedHarmonicPeak::ConstrainedHarmonicPeak(float inputSampleRate) :
     Plugin(inputSampleRate),
-    m_blockSize(0),
+    m_fftSize(0),
     m_minFreq(0),
     m_maxFreq(inputSampleRate/2),
     m_harmonics(5)
@@ -199,7 +199,7 @@ ConstrainedHarmonicPeak::initialise(size_t channels, size_t stepSize, size_t blo
 	return false;
     }
 
-    m_blockSize = blockSize;
+    m_fftSize = blockSize;
 
     return true;
 }
@@ -243,18 +243,18 @@ ConstrainedHarmonicPeak::process(const float *const *inputBuffers, Vamp::RealTim
 {
     FeatureSet fs;
 
-    int hs = m_blockSize/2;
+    int hs = m_fftSize/2;
 
     double *mags = new double[hs+1];
     for (int i = 0; i <= hs; ++i) {
-	mags[i] = sqrtf(inputBuffers[0][i*2] * inputBuffers[0][i*2] +
-			inputBuffers[0][i*2+1] * inputBuffers[0][i*2+1]);
+	mags[i] = sqrt(inputBuffers[0][i*2] * inputBuffers[0][i*2] +
+		       inputBuffers[0][i*2+1] * inputBuffers[0][i*2+1]);
     }
 
     // bin freq is bin * samplerate / fftsize
 
-    int minbin = int(floor((m_minFreq * m_blockSize) / m_inputSampleRate));
-    int maxbin = int(ceil((m_maxFreq * m_blockSize) / m_inputSampleRate));
+    int minbin = int(floor((m_minFreq * m_fftSize) / m_inputSampleRate));
+    int maxbin = int(ceil((m_maxFreq * m_fftSize) / m_inputSampleRate));
     if (minbin > hs) minbin = hs;
     if (maxbin > hs) maxbin = hs;
     if (maxbin <= minbin) return fs;
@@ -295,7 +295,7 @@ ConstrainedHarmonicPeak::process(const float *const *inputBuffers, Vamp::RealTim
     double interpolated = findInterpolatedPeak(hps, maxidx, maxbin - minbin + 1);
     interpolated = interpolated + minbin;
 
-    double freq = interpolated * m_inputSampleRate / m_blockSize;
+    double freq = interpolated * m_inputSampleRate / m_fftSize;
 
     Feature f;
     f.values.push_back(freq);

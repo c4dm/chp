@@ -43,7 +43,7 @@ public:
     FeatureSet getRemainingFeatures();
 
 protected:
-    int m_blockSize;
+    int m_fftSize;
     float m_minFreq;
     float m_maxFreq;
     int m_harmonics;
