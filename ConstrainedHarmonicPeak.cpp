@@ -12,7 +12,7 @@ ConstrainedHarmonicPeak::ConstrainedHarmonicPeak(float inputSampleRate) :
     Plugin(inputSampleRate),
     m_fftSize(0),
     m_minFreq(0),
-    m_maxFreq(inputSampleRate/2),
+    m_maxFreq(22050),
     m_harmonics(5)
 {
 }
@@ -36,8 +36,7 @@ ConstrainedHarmonicPeak::getName() const
 string
 ConstrainedHarmonicPeak::getDescription() const
 {
-    //!!! Return something helpful here!
-    return "";
+    return "Return the interpolated peak frequency of a harmonic product spectrum within a given frequency range";
 }
 
 string
@@ -96,7 +95,7 @@ ConstrainedHarmonicPeak::getParameterDescriptors() const
     ParameterDescriptor d;
     d.identifier = "minfreq";
     d.name = "Minimum frequency";
-    d.description = "";
+    d.description = "Minimum frequency for peak finding. Will be rounded down to the nearest spectral bin.";
     d.unit = "Hz";
     d.minValue = 0;
     d.maxValue = m_inputSampleRate/2;
@@ -106,11 +105,11 @@ ConstrainedHarmonicPeak::getParameterDescriptors() const
 
     d.identifier = "maxfreq";
     d.name = "Maximum frequency";
-    d.description = "";
+    d.description = "Maximum frequency for peak finding. Will be rounded up to the nearest spectral bin.";
     d.unit = "Hz";
     d.minValue = 0;
     d.maxValue = m_inputSampleRate/2;
-    d.defaultValue = 0;
+    d.defaultValue = 22050;
     d.isQuantized = false;
     list.push_back(d);
 
@@ -179,7 +178,7 @@ ConstrainedHarmonicPeak::getOutputDescriptors() const
     OutputDescriptor d;
     d.identifier = "peak";
     d.name = "Peak frequency";
-    d.description = "";
+    d.description = "Interpolated frequency of the harmonic spectral peak within the given frequency range";
     d.unit = "Hz";
     d.sampleType = OutputDescriptor::OneSamplePerStep;
     d.hasDuration = false;
@@ -242,6 +241,38 @@ ConstrainedHarmonicPeak::FeatureSet
 ConstrainedHarmonicPeak::process(const float *const *inputBuffers, Vamp::RealTime timestamp)
 {
     FeatureSet fs;
+
+    // This could be better. The procedure here is
+    // 
+    // 1 Produce a harmonic product spectrum within a limited
+    //   frequency range by effectively summing the dB values of the
+    //   bins at each multiple of the bin numbers (up to a given
+    //   number of harmonics) in the range under consideration
+    // 2 Find the peak bin
+    // 3 Calculate the peak location by quadratic interpolation
+    //   from the peak bin and its two neighbouring bins
+    //
+    // Problems with this: 
+    //
+    // 1 Harmonics might not be located at integer multiples of the
+    //   original bin frequency
+    // 2 Quadratic interpolation works "correctly" for dB-valued
+    //   magnitude spectra but might not produce the right results in
+    //   the dB-summed hps, especially in light of the first problem
+    // 3 Interpolation might not make sense at all if there are
+    //   multiple nearby frequencies interfering across the three
+    //   bins used for interpolation (we may be unable to identify
+    //   the right frequency at all, but it's possible interpolation
+    //   will make our guess worse rather than better)
+    //
+    // Possible improvements:
+    // 
+    // 1 Find the higher harmonics by looking for the peak bin within
+    //   a range around the nominal peak location
+    // 2 Once a peak has been identified as the peak of the HPS, use
+    //   the original spectrum (not the HPS) to obtain the values for
+    //   interpolation? (would help with problem 2 but might make
+    //   problem 3 worse)
 
     int hs = m_fftSize/2;
 
