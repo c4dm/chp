@@ -1,0 +1,16 @@
+
+Constrained Harmonic Peak plugin
+================================
+
+This is a simple Vamp plugin that returns the peak frequency within a
+given frequency range, from a harmonic product spectrum.
+
+(The whole available frequency range is used in calculating the
+harmonic spectrum, but only the peak frequency within the range
+specified by the plugin's parameters is returned in the result.)
+
+It was quickly written to provide a simple way to obtain frequencies
+within a user-provided range, for use in the Tony
+(http://code.soundsoftware.ac.uk/projects/tony/) pitch annotation
+application.
+
