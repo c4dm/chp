@@ -317,16 +317,25 @@ ConstrainedHarmonicPeak::process(const float *const *inputBuffers, Vamp::RealTim
     double maxdb = -120.0;
     int maxidx = 0;
     for (int i = 0; i <= maxbin - minbin; ++i) {
-	if (hps[i] > maxdb) {
-	    maxdb = hps[i];
-	    maxidx = i;
-	}
+        if (hps[i] > maxdb) {
+            maxdb = hps[i];
+            maxidx = i;
+        }
+    }
+
+    if (maxidx == 0 || maxidx == maxbin - minbin) { // edge cases are useless
+        return fs;
     }
 
     double interpolated = findInterpolatedPeak(hps, maxidx, maxbin - minbin + 1);
+    
     interpolated = interpolated + minbin;
 
     double freq = interpolated * m_inputSampleRate / m_fftSize;
+    
+    if (freq < m_minFreq || freq > m_maxFreq) {
+        return fs;
+    }
 
     Feature f;
     f.values.push_back(freq);
