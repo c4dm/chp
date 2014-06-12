@@ -1,7 +1,7 @@
 TEMPLATE = lib
 
-INCLUDEPATH += ../../../vamp-plugin-sdk/include 
-LIBS += ../../../vamp-plugin-sdk/lib/libvamp-sdk.a -Wl,--version-script=../win32-build/vamp-plugin.map
+INCLUDEPATH += ../../sv-dependency-builds/win32-mingw/include
+LIBS += ../../sv-dependency-builds/win32-mingw/lib/libvamp-sdk.a -Wl,--version-script=../win32-build/vamp-plugin.map
 
 CONFIG -= qt
 CONFIG += plugin release warn_on
