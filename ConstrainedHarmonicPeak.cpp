@@ -26,6 +26,7 @@
 
 #include <cmath>
 #include <cstdio>
+#include <climits>
 
 using std::cerr;
 using std::endl;
@@ -158,7 +159,7 @@ ConstrainedHarmonicPeak::getParameter(string identifier) const
     } else if (identifier == "maxfreq") {
 	return m_maxFreq;
     } else if (identifier == "harmonics") {
-	return m_harmonics;
+	return float(m_harmonics);
     }
     return 0;
 }
@@ -189,7 +190,7 @@ ConstrainedHarmonicPeak::getCurrentProgram() const
 }
 
 void
-ConstrainedHarmonicPeak::selectProgram(string name)
+ConstrainedHarmonicPeak::selectProgram(string)
 {
 }
 
@@ -211,7 +212,7 @@ ConstrainedHarmonicPeak::getOutputDescriptors() const
 }
 
 bool
-ConstrainedHarmonicPeak::initialise(size_t channels, size_t stepSize, size_t blockSize)
+ConstrainedHarmonicPeak::initialise(size_t channels, size_t, size_t blockSize)
 {
     if (channels < getMinChannelCount() ||
 	channels > getMaxChannelCount()) {
@@ -221,7 +222,11 @@ ConstrainedHarmonicPeak::initialise(size_t channels, size_t stepSize, size_t blo
 	return false;
     }
 
-    m_fftSize = blockSize;
+    if (blockSize > INT_MAX) {
+        return false; // arf
+    }
+    
+    m_fftSize = int(blockSize);
 
     return true;
 }
@@ -261,7 +266,7 @@ ConstrainedHarmonicPeak::findInterpolatedPeak(const double *in,
 }
 
 ConstrainedHarmonicPeak::FeatureSet
-ConstrainedHarmonicPeak::process(const float *const *inputBuffers, Vamp::RealTime timestamp)
+ConstrainedHarmonicPeak::process(const float *const *inputBuffers, Vamp::RealTime)
 {
     FeatureSet fs;
 
@@ -307,8 +312,8 @@ ConstrainedHarmonicPeak::process(const float *const *inputBuffers, Vamp::RealTim
 
     // bin freq is bin * samplerate / fftsize
 
-    int minbin = int(floor((m_minFreq * m_fftSize) / m_inputSampleRate));
-    int maxbin = int(ceil((m_maxFreq * m_fftSize) / m_inputSampleRate));
+    int minbin = int(floor((double(m_minFreq) * m_fftSize) / m_inputSampleRate));
+    int maxbin = int(ceil((double(m_maxFreq) * m_fftSize) / m_inputSampleRate));
     if (minbin > hs) minbin = hs;
     if (maxbin > hs) maxbin = hs;
     if (maxbin <= minbin) return fs;
@@ -361,7 +366,7 @@ ConstrainedHarmonicPeak::process(const float *const *inputBuffers, Vamp::RealTim
     }
 
     Feature f;
-    f.values.push_back(freq);
+    f.values.push_back(float(freq));
     fs[0].push_back(f);
 
     return fs;
